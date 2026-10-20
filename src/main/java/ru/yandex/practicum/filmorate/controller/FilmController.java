@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.validations.FilmValidator;
 
@@ -11,7 +12,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/films")
 public class FilmController extends ApplicationController {
-    Map<Integer, Film> films = new HashMap<Integer, Film>();
+    Map<Long, Film> films = new HashMap<Long, Film>();
 
     @GetMapping
     public Collection<Film> index() {
@@ -20,17 +21,42 @@ public class FilmController extends ApplicationController {
 
     @PostMapping
     public Film create(@RequestBody Film film) {
-        film.setId(getNextId(films));
         if (FilmValidator.checkFilm(film)) {
+            film.setId(getNextId(films));
             films.put(film.getId(), film);
         }
         return film;
     }
 
     @PutMapping
-    public Film update(@RequestBody Film film) {
-        Film oldFilm = films.get(film.getId());
-        films.put(film.getId(), film);
+    public Film update(@RequestBody Film newFilm) {
+        FilmValidator.checkFilmId(newFilm);
+
+        Film oldFilm = films.get(newFilm.getId());
+        if (oldFilm != null) {
+            throw  new NotFoundException("Фильм с ID " + newFilm.getId() + " не найден");
+        }
+
+        if (newFilm.getName() != null) {
+            FilmValidator.checkFilmName(newFilm);
+            films.put(newFilm.getId(), newFilm);
+        }
+
+        if (newFilm.getDescription() != null) {
+            FilmValidator.checkFilmDescription(newFilm);
+            films.put(newFilm.getId(), newFilm);
+        }
+
+        if (newFilm.getReleaseDate() != null) {
+            FilmValidator.checkFilmReleaseDate(newFilm);
+            films.put(newFilm.getId(), newFilm);
+        }
+
+        if (newFilm.getDuration() != null) {
+            FilmValidator.checkFilmDuration(newFilm);
+            films.put(newFilm.getId(), newFilm);
+        }
+
         return oldFilm;
     }
 }

@@ -6,10 +6,10 @@ import java.util.Map;
 
 public abstract class ApplicationController {
 
-    protected int getNextId(Map<Integer, ?> map) {
-        int currentMaxId = map.keySet()
+    protected Long getNextId(Map<Long, Film> map) {
+        long currentMaxId = map.keySet()
                 .stream()
-                .mapToInt(id -> id)
+                .mapToLong(id -> id)
                 .max()
                 .orElse(0);
 
