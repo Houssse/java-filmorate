@@ -1,8 +1,8 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.AbstractController;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.validations.FilmValidator;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -21,7 +21,9 @@ public class FilmController extends ApplicationController {
     @PostMapping
     public Film create(@RequestBody Film film) {
         film.setId(getNextId(films));
-        films.put(film.getId(), film);
+        if (FilmValidator.checkFilm(film)) {
+            films.put(film.getId(), film);
+        }
         return film;
     }
 
@@ -31,6 +33,4 @@ public class FilmController extends ApplicationController {
         films.put(film.getId(), film);
         return oldFilm;
     }
-
-
 }
