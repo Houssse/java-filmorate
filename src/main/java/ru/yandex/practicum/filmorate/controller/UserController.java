@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.validations.UserValidator;
@@ -23,6 +24,12 @@ public class UserController extends ApplicationController {
     @PostMapping
     public User create(@RequestBody User user) {
         if (UserValidator.checkUser(user)) {
+            boolean emailExists = users.values().stream()
+                    .anyMatch(u -> u.getEmail().equals(user.getEmail()));
+
+            if (emailExists) {
+                throw new DuplicatedDataException("Этот имейл уже используется");
+            }
             if (user.getName() == null || user.getName().isBlank()) {
                 user.setName(user.getLogin());
             } else {
