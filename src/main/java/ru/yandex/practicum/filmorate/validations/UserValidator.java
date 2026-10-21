@@ -15,7 +15,7 @@ public class UserValidator {
     }
 
     public static void checkId(User user) {
-        if (user.getId() == null ) {
+        if (user.getId() == null) {
             throw new ValidationException("Id должен быть указан");
         }
     }
