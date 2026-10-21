@@ -47,22 +47,22 @@ public class FilmController extends ApplicationController {
 
         if (newFilm.getName() != null) {
             FilmValidator.checkFilmName(newFilm);
-            films.put(newFilm.getId(), newFilm);
+            oldFilm.setName(newFilm.getName());
         }
 
         if (newFilm.getDescription() != null) {
             FilmValidator.checkFilmDescription(newFilm);
-            films.put(newFilm.getId(), newFilm);
+            oldFilm.setDescription(newFilm.getDescription());
         }
 
         if (newFilm.getReleaseDate() != null) {
             FilmValidator.checkFilmReleaseDate(newFilm);
-            films.put(newFilm.getId(), newFilm);
+            oldFilm.setReleaseDate(newFilm.getReleaseDate());
         }
 
         if (newFilm.getDuration() != null) {
             FilmValidator.checkFilmDuration(newFilm);
-            films.put(newFilm.getId(), newFilm);
+           oldFilm.setDuration(newFilm.getDuration());
         }
 
         log.debug("Фильм обновлен {}", oldFilm);
