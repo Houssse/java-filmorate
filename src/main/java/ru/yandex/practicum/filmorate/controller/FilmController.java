@@ -33,7 +33,7 @@ public class FilmController extends ApplicationController {
         FilmValidator.checkFilmId(newFilm);
 
         Film oldFilm = films.get(newFilm.getId());
-        if (oldFilm != null) {
+        if (oldFilm == null) {
             throw  new NotFoundException("Фильм с ID " + newFilm.getId() + " не найден");
         }
 

@@ -14,6 +14,12 @@ public class UserValidator {
         return true;
     }
 
+    public static void checkId(User user) {
+        if (user.getId() == null ) {
+            throw new ValidationException("Id должен быть указан");
+        }
+    }
+
     public static void checkEmail(User user) {
         if (user.getEmail() == null || user.getEmail().isBlank()) {
             throw new ValidationException("электронная почта не может быть пустой");
