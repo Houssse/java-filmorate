@@ -29,12 +29,12 @@ class FilmControllerTest {
     @Test
     void shouldReturn200WhenFilmIsValid() throws Exception {
         String validJson = """
-                {
+                \s{
                   "name": "Inception",
                   "description": "A thief who steals corporate secrets.",
                   "releaseDate": "2010-07-16",
                   "duration": 8880
-                }
+                \s}
                 """;
 
         mockMvc.perform(post("/films")
@@ -47,12 +47,12 @@ class FilmControllerTest {
     @Test
     void shouldReturn400WhenNameIsBlank() throws Exception {
         String json = """
-                {
+                \s{
                   "name": "   ",
                   "description": "Desc",
                   "releaseDate": "2010-07-16",
                   "duration": 8880
-                }
+                \s}
                 """;
 
         mockMvc.perform(post("/films")
@@ -66,12 +66,12 @@ class FilmControllerTest {
     void shouldReturn400WhenDescriptionIsTooLong() throws Exception {
         String longDescription = "A".repeat(201);
         String json = """
-                {
+                \s{
                   "name": "Inception",
                   "description": "%s",
                   "releaseDate": "2010-07-16",
                   "duration": 8880
-                }
+                \s}
                 """.formatted(longDescription);
 
         mockMvc.perform(post("/films")
@@ -84,12 +84,12 @@ class FilmControllerTest {
     @Test
     void shouldReturn400WhenReleaseDateIsBefore1895() throws Exception {
         String json = """
-                {
+                \s{
                   "name": "Old Film",
                   "description": "Old",
                   "releaseDate": "1895-12-27",
                   "duration": 100
-                }
+                \s}
                 """;
 
         mockMvc.perform(post("/films")
@@ -102,12 +102,12 @@ class FilmControllerTest {
     @Test
     void shouldReturn400WhenDurationIsZero() throws Exception {
         String json = """
-                {
+                \s{
                   "name": "Inception",
                   "description": "Desc",
                   "releaseDate": "2010-07-16",
                   "duration": 0
-                }
+                \s}
                 """;
 
         mockMvc.perform(post("/films")
@@ -122,12 +122,12 @@ class FilmControllerTest {
     void shouldReturn200WhenUpdateExistingFilm() throws Exception {
         // 1. Сначала создаем фильм
         String createJson = """
-                {
+                \s{
                   "name": "Inception",
                   "description": "Desc",
                   "releaseDate": "2010-07-16",
                   "duration": 8880
-                }
+                \s}
                 """;
         mockMvc.perform(post("/films")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -135,13 +135,13 @@ class FilmControllerTest {
 
         // 2. Обновляем его
         String updateJson = """
-                {
+                \s{
                   "id": 1,
                   "name": "Inception Updated",
                   "description": "New Desc",
                   "releaseDate": "2010-07-16",
                   "duration": 9000
-                }
+                \s}
                 """;
 
         mockMvc.perform(put("/films")
@@ -154,13 +154,13 @@ class FilmControllerTest {
     @Test
     void shouldReturn404WhenUpdateNonExistentFilm() throws Exception {
         String updateJson = """
-                {
+                \s{
                   "id": 999,
                   "name": "Ghost Film",
                   "description": "Desc",
                   "releaseDate": "2010-07-16",
                   "duration": 8880
-                }
+                \s}
                 """;
 
         mockMvc.perform(put("/films")
@@ -173,12 +173,12 @@ class FilmControllerTest {
     @Test
     void shouldReturn400WhenUpdateIdIsNull() throws Exception {
         String updateJson = """
-                {
+                \s{
                   "name": "No Id Film",
                   "description": "Desc",
                   "releaseDate": "2010-07-16",
                   "duration": 8880
-                }
+                \s}
                 """;
 
         mockMvc.perform(put("/films")
