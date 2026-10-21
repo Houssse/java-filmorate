@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
@@ -11,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Controller
 @RequestMapping("/users")
 public class UserController extends ApplicationController {
@@ -23,6 +25,8 @@ public class UserController extends ApplicationController {
 
     @PostMapping
     public User create(@RequestBody User user) {
+        log.debug("Создание user {}", user);
+
         if (UserValidator.checkUser(user)) {
             boolean emailExists = users.values().stream()
                     .anyMatch(u -> u.getEmail().equals(user.getEmail()));
@@ -38,12 +42,16 @@ public class UserController extends ApplicationController {
             user.setId(getNextId(users));
             users.put(user.getId(), user);
         }
+
+        log.debug("User создан {}", user);
         return user;
     }
 
     //В тз не сказано какие поля можно обновлять поэтому обновляем любое
     @PutMapping
     public User update(@RequestBody User newUser) {
+        log.debug("Обновление user {}", newUser);
+
         UserValidator.checkId(newUser);
 
         User oldUser = users.get(newUser.getId());
@@ -71,6 +79,7 @@ public class UserController extends ApplicationController {
             oldUser.setBirthDay(newUser.getBirthDay());
         }
 
+        log.debug("Обновлен user {}", oldUser);
         return oldUser;
     }
 }

@@ -23,15 +23,21 @@ public class FilmController extends ApplicationController {
 
     @PostMapping
     public Film create(@RequestBody Film film) {
+        log.debug("Создание фильма {}", film);
+
         if (FilmValidator.checkFilm(film)) {
             film.setId(getNextId(films));
             films.put(film.getId(), film);
         }
+
+        log.debug("Фильма создан {}", film);
         return film;
     }
 
     @PutMapping
     public Film update(@RequestBody Film newFilm) {
+        log.debug("Обновление фильма {}", newFilm);
+
         FilmValidator.checkFilmId(newFilm);
 
         Film oldFilm = films.get(newFilm.getId());
@@ -59,6 +65,7 @@ public class FilmController extends ApplicationController {
             films.put(newFilm.getId(), newFilm);
         }
 
+        log.debug("Фильм обновлен {}", oldFilm);
         return oldFilm;
     }
 }
