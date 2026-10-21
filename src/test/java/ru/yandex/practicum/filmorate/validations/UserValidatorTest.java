@@ -67,20 +67,6 @@ class UserValidatorTest {
     }
 
     @Test
-    void shouldThrowWhenNameHasWhitespace() {
-        User user = new User();
-        user.setName("test name");
-        assertThrows(ValidationException.class, () -> UserValidator.checkName(user));
-    }
-
-    @Test
-    void shouldNotThrowWhenNameIsValid() {
-        User user = new User();
-        user.setName("testName");
-        assertDoesNotThrow(() -> UserValidator.checkName(user));
-    }
-
-    @Test
     void shouldThrowWhenBirthDayIsNull() {
         User user = new User();
         user.setBirthDay(null);

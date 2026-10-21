@@ -42,7 +42,7 @@ public class FilmController extends ApplicationController {
 
         Film oldFilm = films.get(newFilm.getId());
         if (oldFilm == null) {
-            throw  new NotFoundException("Фильм с ID " + newFilm.getId() + " не найден");
+            throw new NotFoundException("Фильм с ID " + newFilm.getId() + " не найден");
         }
 
         if (newFilm.getName() != null) {
@@ -62,10 +62,15 @@ public class FilmController extends ApplicationController {
 
         if (newFilm.getDuration() != null) {
             FilmValidator.checkFilmDuration(newFilm);
-           oldFilm.setDuration(newFilm.getDuration());
+            oldFilm.setDuration(newFilm.getDuration());
         }
 
         log.debug("Фильм обновлен {}", oldFilm);
         return oldFilm;
     }
+
+    public void clearFilms() {
+        films.clear();
+    }
+
 }

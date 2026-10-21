@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-@Controller
+@RestController
 @RequestMapping("/users")
 public class UserController extends ApplicationController {
     Map<Long, User> users = new HashMap<Long, User>();
@@ -36,8 +36,8 @@ public class UserController extends ApplicationController {
             }
             if (user.getName() == null || user.getName().isBlank()) {
                 user.setName(user.getLogin());
-            } else {
-                UserValidator.checkName(user);
+//            } else {
+//                UserValidator.checkName(user);
             }
             user.setId(getNextId(users));
             users.put(user.getId(), user);
@@ -61,6 +61,14 @@ public class UserController extends ApplicationController {
 
         if (newUser.getEmail() != null) {
             UserValidator.checkEmail(newUser);
+
+            boolean emailTaken = users.values().stream()
+                    .anyMatch(u -> u.getEmail().equals(newUser.getEmail())
+                            && !u.getId().equals(newUser.getId()));
+            if (emailTaken) {
+                throw new DuplicatedDataException("Этот имейл уже используется");
+            }
+
             oldUser.setEmail(newUser.getEmail());
         }
 
@@ -70,7 +78,7 @@ public class UserController extends ApplicationController {
         }
 
         if (newUser.getName() != null) {
-            UserValidator.checkName(newUser);
+//            UserValidator.checkName(newUser);
             oldUser.setName(newUser.getName());
         }
 
@@ -81,5 +89,9 @@ public class UserController extends ApplicationController {
 
         log.debug("Обновлен user {}", oldUser);
         return oldUser;
+    }
+
+    public void clearUsers() {
+        users.clear();
     }
 }

@@ -46,12 +46,14 @@ public class UserValidator {
         }
     }
 
-    public static void checkName(User user) {
-        if (hasWhitespace(user.getName())) {
-            throw new ValidationException("имя не может содержать пробелы");
-        }
+// В тз не сказано про то как валидировать имя оставлю так
 
-    }
+//    public static void checkName(User user) {
+//        if (hasWhitespace(user.getName())) {
+//            throw new ValidationException("имя не может содержать пробелы");
+//        }
+//
+//    }
 
     public static void checkBirthDay(User user) {
         if (user.getBirthDay() == null) {
