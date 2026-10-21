@@ -69,28 +69,28 @@ class UserValidatorTest {
     @Test
     void shouldThrowWhenBirthDayIsNull() {
         User user = new User();
-        user.setBirthDay(null);
+        user.setBirthday(null);
         assertThrows(ValidationException.class, () -> UserValidator.checkBirthDay(user));
     }
 
     @Test
     void shouldThrowWhenBirthDayIsInFuture() {
         User user = new User();
-        user.setBirthDay(LocalDate.now().plusDays(1)); // завтра
+        user.setBirthday(LocalDate.now().plusDays(1)); // завтра
         assertThrows(ValidationException.class, () -> UserValidator.checkBirthDay(user));
     }
 
     @Test
     void shouldNotThrowWhenBirthDayIsToday() {
         User user = new User();
-        user.setBirthDay(LocalDate.now()); // сегодня (граница — не будущее)
+        user.setBirthday(LocalDate.now()); // сегодня (граница — не будущее)
         assertDoesNotThrow(() -> UserValidator.checkBirthDay(user));
     }
 
     @Test
     void shouldNotThrowWhenBirthDayIsInPast() {
         User user = new User();
-        user.setBirthDay(LocalDate.of(2000, 1, 1));
+        user.setBirthday(LocalDate.of(2000, 1, 1));
         assertDoesNotThrow(() -> UserValidator.checkBirthDay(user));
     }
 

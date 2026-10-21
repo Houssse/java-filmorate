@@ -56,13 +56,13 @@ public class UserValidator {
 //    }
 
     public static void checkBirthDay(User user) {
-        if (user.getBirthDay() == null) {
+        if (user.getBirthday() == null) {
             throw new ValidationException("Дата рождения не может быть пустой");
         }
 
         LocalDate today = LocalDate.now();
 
-        if (user.getBirthDay().isAfter(today)) {
+        if (user.getBirthday().isAfter(today)) {
             throw new ValidationException("дата рождения не может быть в будущем");
         }
     }

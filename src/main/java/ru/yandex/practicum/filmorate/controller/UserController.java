@@ -82,9 +82,9 @@ public class UserController extends ApplicationController {
             oldUser.setName(newUser.getName());
         }
 
-        if (newUser.getBirthDay() != null) {
+        if (newUser.getBirthday() != null) {
             UserValidator.checkBirthDay(newUser);
-            oldUser.setBirthDay(newUser.getBirthDay());
+            oldUser.setBirthday(newUser.getBirthday());
         }
 
         log.debug("Обновлен user {}", oldUser);

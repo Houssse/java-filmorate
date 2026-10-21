@@ -10,5 +10,5 @@ public class User {
     String email;
     String login;
     String name;
-    LocalDate birthDay;
+    LocalDate birthday;
 }

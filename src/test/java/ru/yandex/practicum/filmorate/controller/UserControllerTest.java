@@ -34,7 +34,7 @@ class UserControllerTest {
                   "email": "test@mail.ru",
                   "login": "testLogin",
                   "name": "Test Name",
-                  "birthDay": "2000-01-01"
+                  "birthday": "2000-01-01"
                 }
                 """;
 
@@ -53,7 +53,7 @@ class UserControllerTest {
                   "email": "   ",
                   "login": "testLogin",
                   "name": "Test Name",
-                  "birthDay": "2000-01-01"
+                  "birthday": "2000-01-01"
                 }
                 """;
 
@@ -71,7 +71,7 @@ class UserControllerTest {
                   "email": "same@mail.ru",
                   "login": "user1",
                   "name": "User One",
-                  "birthDay": "2000-01-01"
+                  "birthday": "2000-01-01"
                 }
                 """;
         mockMvc.perform(post("/users")
@@ -83,7 +83,7 @@ class UserControllerTest {
                   "email": "same@mail.ru",
                   "login": "user2",
                   "name": "User Two",
-                  "birthDay": "2000-01-01"
+                  "birthday": "2000-01-01"
                 }
                 """;
 
@@ -101,7 +101,7 @@ class UserControllerTest {
                   "email": "test@mail.ru",
                   "login": "myLogin",
                   "name": "",
-                  "birthDay": "2000-01-01"
+                  "birthday": "2000-01-01"
                 }
                 """;
 
@@ -113,13 +113,13 @@ class UserControllerTest {
     }
 
     @Test
-    void shouldReturn400WhenBirthDayIsInFuture() throws Exception {
+    void shouldReturn400WhenbirthdayIsInFuture() throws Exception {
         String json = """
                 {
                   "email": "test@mail.ru",
                   "login": "testLogin",
                   "name": "Test",
-                  "birthDay": "2099-01-01"
+                  "birthday": "2099-01-01"
                 }
                 """;
 
@@ -137,7 +137,7 @@ class UserControllerTest {
                   "email": "test@mail.ru",
                   "login": "testLogin",
                   "name": "Test Name",
-                  "birthDay": "2000-01-01"
+                  "birthday": "2000-01-01"
                 }
                 """;
         mockMvc.perform(post("/users")
@@ -150,7 +150,7 @@ class UserControllerTest {
                   "email": "new@mail.ru",
                   "login": "newLogin",
                   "name": "New Name",
-                  "birthDay": "1990-05-05"
+                  "birthday": "1990-05-05"
                 }
                 """;
 
@@ -170,7 +170,7 @@ class UserControllerTest {
                   "email": "ghost@mail.ru",
                   "login": "ghost",
                   "name": "Ghost",
-                  "birthDay": "2000-01-01"
+                  "birthday": "2000-01-01"
                 }
                 """;
 
@@ -188,7 +188,7 @@ class UserControllerTest {
                   "email": "test@mail.ru",
                   "login": "testLogin",
                   "name": "Test",
-                  "birthDay": "2000-01-01"
+                  "birthday": "2000-01-01"
                 }
                 """;
 
@@ -202,12 +202,12 @@ class UserControllerTest {
     @Test
     void shouldReturn409WhenUpdateEmailIsDuplicated() throws Exception {
         String user1 = """
-                {"email": "one@mail.ru", "login": "user1", "name": "One", "birthDay": "2000-01-01"}
+                {"email": "one@mail.ru", "login": "user1", "name": "One", "birthday": "2000-01-01"}
                 """;
         mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(user1));
 
         String user2 = """
-                {"email": "two@mail.ru", "login": "user2", "name": "Two", "birthDay": "2000-01-01"}
+                {"email": "two@mail.ru", "login": "user2", "name": "Two", "birthday": "2000-01-01"}
                 """;
         mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(user2));
 
@@ -217,7 +217,7 @@ class UserControllerTest {
                   "email": "one@mail.ru",
                   "login": "user2",
                   "name": "Two",
-                  "birthDay": "2000-01-01"
+                  "birthday": "2000-01-01"
                 }
                 """;
 
