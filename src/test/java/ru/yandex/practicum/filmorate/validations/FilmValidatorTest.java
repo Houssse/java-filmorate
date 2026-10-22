@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -61,21 +60,21 @@ class FilmValidatorTest {
     @Test
     void shouldThrowWhenDurationIsZero() {
         Film film = new Film();
-        film.setDuration(Duration.ZERO);
+        film.setDuration(0);
         assertThrows(ValidationException.class, () -> FilmValidator.checkFilmDuration(film));
     }
 
     @Test
     void shouldThrowWhenDurationIsNegative() {
         Film film = new Film();
-        film.setDuration(Duration.ofSeconds(-10));
+        film.setDuration(-10);
         assertThrows(ValidationException.class, () -> FilmValidator.checkFilmDuration(film));
     }
 
     @Test
     void shouldNotThrowWhenDurationIsPositive() {
         Film film = new Film();
-        film.setDuration(Duration.ofSeconds(1)); // минимально допустимая
+        film.setDuration(1); // минимально допустимая
         assertDoesNotThrow(() -> FilmValidator.checkFilmDuration(film));
     }
 }

@@ -52,7 +52,7 @@ public class FilmValidator {
         if (film.getDuration() == null) {
             throw new ValidationException("Продолжительность фильма не может быть пустой");
         }
-        if (!film.getDuration().isPositive()) {
+        if (film.getDuration() <= 0) {
             throw new ValidationException("Продолжительность должна быть больше нуля");
         }
     }
