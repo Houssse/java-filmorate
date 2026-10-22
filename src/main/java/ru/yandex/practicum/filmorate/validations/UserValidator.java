@@ -37,12 +37,12 @@ public class UserValidator {
     }
 
     public static void checkLogin(User user) {
-        if (hasWhitespace(user.getLogin())) {
-            throw new ValidationException("логин не может содержать пробелы");
+        if (user.getLogin() == null || user.getLogin().isBlank()) {
+            throw new ValidationException("логин не может быть пустым");
         }
 
-        if (user.getLogin().isBlank()) {
-            throw new ValidationException("логин не может быть пустым");
+        if (hasWhitespace(user.getLogin())) {
+            throw new ValidationException("логин не может содержать пробелы");
         }
     }
 
