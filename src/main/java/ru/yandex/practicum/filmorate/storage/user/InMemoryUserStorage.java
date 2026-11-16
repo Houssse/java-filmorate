@@ -12,7 +12,7 @@ public class InMemoryUserStorage implements UserStorage {
     Map<Long, User> users = new HashMap<Long, User>();
 
     @Override
-    public Collection<User> getUsers() {
+    public Collection<User> getAllUsers() {
         return users.values();
     }
 
@@ -32,7 +32,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User getUser(Long id) {
+    public User getById(Long id) {
         return users.get(id);
     }
 

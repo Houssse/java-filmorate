@@ -22,7 +22,7 @@ public class UserService {
     }
 
     public Collection<User> getAllUsers() {
-       return userStorage.getUsers();
+       return userStorage.getAllUsers();
     }
 
     public User createUser(User user) {
@@ -49,7 +49,7 @@ public class UserService {
 
         UserValidator.checkId(newUser);
 
-        User oldUser = userStorage.getUser(newUser.getId());
+        User oldUser = userStorage.getById(newUser.getId());
         if (oldUser == null) {
             throw new NotFoundException("User c id " + newUser.getId() + " не найден");
         }
