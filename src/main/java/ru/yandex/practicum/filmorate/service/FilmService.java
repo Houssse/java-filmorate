@@ -72,10 +72,10 @@ public class FilmService {
         return filmStorage.update(oldFilm);
     }
 
-    public void addLike(long userId, long filmId) {
-        Film film = filmStorage.getById(filmId);
+    public void addLike(long id, long userId) {
+        Film film = filmStorage.getById(id);
         if (film == null) {
-            throw new NotFoundException("Фильм с ID " + filmId + " не найден");
+            throw new NotFoundException("Фильм с ID " + id + " не найден");
         }
 
         User user = userStorage.getById(userId);
@@ -86,10 +86,10 @@ public class FilmService {
         film.getLikes().add(userId);
     }
 
-    public void deleteLike(long userId, long filmId) {
-        Film film = filmStorage.getById(filmId);
+    public void deleteLike(long id, long userId) {
+        Film film = filmStorage.getById(id);
         if (film == null) {
-            throw new NotFoundException("Фильм с ID " + filmId + " не найден");
+            throw new NotFoundException("Фильм с ID " + id + " не найден");
         }
 
         User user = userStorage.getById(userId);
@@ -100,10 +100,10 @@ public class FilmService {
         film.getLikes().remove(userId);
     }
 
-    public Collection<Film> getTopFilms(){
+    public Collection<Film> getPopularFilms(int count) {
         return filmStorage.getAllFilms().stream()
                 .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
-                .limit(10)
+                .limit(count)
                 .collect(Collectors.toList());
     }
 }
