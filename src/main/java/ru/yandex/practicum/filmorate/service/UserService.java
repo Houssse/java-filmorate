@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.validations.UserValidator;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -129,5 +130,26 @@ public class UserService {
 
         user.getFriends().remove(friendId);
         userFriend.getFriends().remove(userId);
+    }
+
+    public  Collection<User> getCommonFriends(long userId, long otherId) {
+        User user = userStorage.getById(userId);
+        if (user == null) {
+            throw new NotFoundException("User с id " + userId + " не найден");
+        }
+
+        User otherUse = userStorage.getById(otherId);
+        if (otherUse == null) {
+            throw new NotFoundException("User с id " + otherId + " не найден");
+        }
+
+        Set<Long> commonFriendIds = new HashSet<>(user.getFriends());
+
+        commonFriendIds.retainAll(otherUse.getFriends());
+
+        return commonFriendIds.stream()
+                .map(userStorage::getById)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }
