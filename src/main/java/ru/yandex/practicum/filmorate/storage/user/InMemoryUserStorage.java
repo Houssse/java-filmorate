@@ -17,19 +17,37 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User create(User user) {
+    public void create(User user) {
         users.put(user.getId(), user);
-        return user;
     }
 
     @Override
-    public User update(User user) {
+    public void update(User user) {
         users.put(user.getId(), user);
-        return user;
     }
 
     @Override
-    public void delete(User user) {
-        users.remove(user.getId());
+    public void AllDeleteUsers() {
+        users.clear();
+    }
+
+    @Override
+    public User getUser(Long id) {
+        return users.get(id);
+    }
+
+    @Override
+    public boolean emailExists(String email) {
+        return users.values().stream().anyMatch(user -> user.getEmail().equals(email));
+    }
+
+    @Override
+    public Long getNextId() {
+        long currentMaxId = users.keySet()
+                .stream()
+                .mapToLong(id -> id)
+                .max()
+                .orElse(0L);
+        return ++currentMaxId;
     }
 }
