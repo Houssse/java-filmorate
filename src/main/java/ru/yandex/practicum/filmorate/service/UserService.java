@@ -10,6 +10,9 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import ru.yandex.practicum.filmorate.validations.UserValidator;
 
 import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -83,5 +86,48 @@ public class UserService {
         log.debug("Обновлен user {}", oldUser);
 
         return oldUser;
+    }
+
+    public Collection<User> getAllFriends(long userId) {
+        User user = userStorage.getById(userId);
+
+        if (user == null) {
+            throw new NotFoundException("User с id " + userId + " не найден");
+        }
+
+        return user.getFriends().stream()
+                .map(userStorage::getById)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    public void addFriend(long userId, long friendId) {
+        User user = userStorage.getById(userId);
+        if (user == null) {
+            throw new NotFoundException("User с id " + userId + " не найден");
+        }
+
+        User userFriend = userStorage.getById(friendId);
+        if (userFriend == null) {
+            throw new NotFoundException("User с id " + friendId + " не найден");
+        }
+
+        user.getFriends().add(friendId);
+        userFriend.getFriends().add(userId);
+    }
+
+    public void deleteFriend(long userId, long friendId) {
+        User user = userStorage.getById(userId);
+        if (user == null) {
+            throw new NotFoundException("User с id " + userId + " не найден");
+        }
+
+        User userFriend = userStorage.getById(friendId);
+        if (userFriend == null) {
+            throw new NotFoundException("User с id " + friendId + " не найден");
+        }
+
+        user.getFriends().remove(friendId);
+        userFriend.getFriends().remove(userId);
     }
 }
