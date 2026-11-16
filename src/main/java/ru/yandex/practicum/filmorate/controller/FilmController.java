@@ -29,4 +29,19 @@ public class FilmController {
     public Film update(@RequestBody Film newFilm) {
         return  filmService.update(newFilm);
     }
+
+    @PutMapping("{userId}/like/{filmId}")
+    public void like(@PathVariable long userId, @PathVariable long filmId) {
+        filmService.addLike(userId, filmId);
+    }
+
+    @DeleteMapping("{userId/like/{filmId")
+    public void unlike(@PathVariable long userId, @PathVariable long filmId) {
+        filmService.deleteLike(userId, filmId);
+    }
+
+    @GetMapping("/top")
+    public Collection<Film> top10() {
+        return filmService.getTopFilms();
+    }
 }
