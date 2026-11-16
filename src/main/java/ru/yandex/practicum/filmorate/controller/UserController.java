@@ -9,7 +9,7 @@ import java.util.Collection;
 
 @RestController
 @RequestMapping("/users")
-public class UserController extends ApplicationController {
+public class UserController {
     @Autowired
     private UserService userService;
 

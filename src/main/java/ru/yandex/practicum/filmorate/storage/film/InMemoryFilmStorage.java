@@ -12,7 +12,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Long, Film> films = new HashMap<Long, Film>();
 
     @Override
-    public Collection<Film> getFilms() {
+    public Collection<Film> getAllFilms() {
         return films.values();
     }
 
@@ -29,7 +29,22 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public void delete(Film film) {
-        films.remove(film.getId());
+    public void deleteAllFilms() {
+        films.clear();
+    }
+
+    @Override
+    public Long getNextId() {
+        long currentMaxId = films.keySet()
+                .stream()
+                .mapToLong(id -> id)
+                .max()
+                .orElse(0L);
+        return ++currentMaxId;
+    }
+
+    @Override
+    public Film getById(long id) {
+        return films.get(id);
     }
 }
