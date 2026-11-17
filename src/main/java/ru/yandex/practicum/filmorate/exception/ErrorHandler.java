@@ -32,4 +32,11 @@ public class ErrorHandler {
         log.warn("Не найдено: {}", e.getMessage());
         return Map.of("error", e.getMessage());
     }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleException(Exception e) {
+        log.warn("Внутренняя ошибка", e);
+        return Map.of("error", e.getMessage());
+    }
 }
