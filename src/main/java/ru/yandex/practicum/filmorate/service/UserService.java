@@ -26,7 +26,7 @@ public class UserService {
     }
 
     public Collection<User> getAllUsers() {
-       return userStorage.getAllUsers();
+        return userStorage.getAllUsers();
     }
 
     public User createUser(User user) {
@@ -132,7 +132,7 @@ public class UserService {
         userFriend.getFriends().remove(userId);
     }
 
-    public  Collection<User> getCommonFriends(long userId, long otherId) {
+    public Collection<User> getCommonFriends(long userId, long otherId) {
         User user = userStorage.getById(userId);
         if (user == null) {
             throw new NotFoundException("User с id " + userId + " не найден");

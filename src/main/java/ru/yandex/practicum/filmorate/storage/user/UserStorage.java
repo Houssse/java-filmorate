@@ -13,7 +13,7 @@ public interface UserStorage {
 
     void AllDeleteUsers();
 
-    boolean emailExists (String email);
+    boolean emailExists(String email);
 
     Long getNextId();
 

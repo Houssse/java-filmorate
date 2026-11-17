@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 public class FilmService {
     FilmStorage filmStorage;
     UserStorage userStorage;
+
     @Autowired
     public void setFilmStorage(FilmStorage filmStorage, UserStorage userStorage) {
         this.filmStorage = filmStorage;
