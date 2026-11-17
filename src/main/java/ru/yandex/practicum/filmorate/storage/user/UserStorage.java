@@ -11,7 +11,7 @@ public interface UserStorage {
 
     void update(User user);
 
-    void AllDeleteUsers();
+    void allDeleteUsers();
 
     boolean emailExists(String email);
 
