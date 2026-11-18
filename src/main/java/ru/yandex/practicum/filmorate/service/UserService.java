@@ -69,7 +69,7 @@ public class UserService {
             UserValidator.checkEmail(newUser);
 
             if (userStorage.emailExists(newUser.getEmail())
-                    && !oldUser.getEmail().equals(newUser.getEmail())) {
+                    && !Objects.equals(oldUser.getEmail(), newUser.getEmail())) {
                 throw new DuplicatedDataException("Этот имейл уже используется");
             }
 
