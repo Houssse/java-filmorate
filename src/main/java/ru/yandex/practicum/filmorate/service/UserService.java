@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -26,6 +25,15 @@ public class UserService {
 
     public Collection<User> getAllUsers() {
         return userStorage.getAllUsers();
+    }
+
+    public User getUserById(Long id) {
+        User user = userStorage.getById(id);
+        if (Objects.isNull(user)) {
+            throw new NotFoundException("User c id " + id + " не найден");
+        }
+
+        return user;
     }
 
     public User createUser(User user) {
