@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class FilmService {
-    FilmStorage filmStorage;
-    UserStorage userStorage;
+    private final FilmStorage filmStorage;
+    private final UserStorage userStorage;
 
-    public void setFilmStorage(FilmStorage filmStorage, UserStorage userStorage) {
+    public  FilmService(FilmStorage filmStorage, UserStorage userStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
     }
