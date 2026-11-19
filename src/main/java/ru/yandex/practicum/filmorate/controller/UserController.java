@@ -1,96 +1,57 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.validations.UserValidator;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
-@Slf4j
 @RestController
 @RequestMapping("/users")
-public class UserController extends ApplicationController {
-    Map<Long, User> users = new HashMap<Long, User>();
+public class UserController {
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
     public Collection<User> index() {
-        return users.values();
+        return userService.getAllUsers();
+    }
+
+    @GetMapping("/{id}")
+    public User show(@PathVariable long id) {
+        return userService.getUserById(id);
     }
 
     @PostMapping
     public User create(@RequestBody User user) {
-        log.debug("Создание user {}", user);
-
-        if (UserValidator.checkUser(user)) {
-            boolean emailExists = users.values().stream()
-                    .anyMatch(u -> u.getEmail().equals(user.getEmail()));
-
-            if (emailExists) {
-                throw new DuplicatedDataException("Этот имейл уже используется");
-            }
-            if (user.getName() == null || user.getName().isBlank()) {
-                user.setName(user.getLogin());
-//            } else {
-//                UserValidator.checkName(user);
-            }
-            user.setId(getNextId(users));
-            users.put(user.getId(), user);
-        }
-
-        log.debug("User создан {}", user);
-        return user;
+        return userService.createUser(user);
     }
 
-    //В тз не сказано какие поля можно обновлять поэтому обновляем любое
     @PutMapping
     public User update(@RequestBody User newUser) {
-        log.debug("Обновление user {}", newUser);
-
-        UserValidator.checkId(newUser);
-
-        User oldUser = users.get(newUser.getId());
-        if (oldUser == null) {
-            throw new NotFoundException("User c id " + newUser.getId() + " не найден");
-        }
-
-        if (newUser.getEmail() != null) {
-            UserValidator.checkEmail(newUser);
-
-            boolean emailTaken = users.values().stream()
-                    .anyMatch(u -> u.getEmail().equals(newUser.getEmail())
-                            && !u.getId().equals(newUser.getId()));
-            if (emailTaken) {
-                throw new DuplicatedDataException("Этот имейл уже используется");
-            }
-
-            oldUser.setEmail(newUser.getEmail());
-        }
-
-        if (newUser.getLogin() != null) {
-            UserValidator.checkLogin(newUser);
-            oldUser.setLogin(newUser.getLogin());
-        }
-
-        if (newUser.getName() != null) {
-//            UserValidator.checkName(newUser);
-            oldUser.setName(newUser.getName());
-        }
-
-        if (newUser.getBirthday() != null) {
-            UserValidator.checkBirthDay(newUser);
-            oldUser.setBirthday(newUser.getBirthday());
-        }
-
-        log.debug("Обновлен user {}", oldUser);
-        return oldUser;
+        return userService.updateUser(newUser);
     }
 
-    public void clearUsers() {
-        users.clear();
+    @GetMapping("/{id}/friends")
+    public Collection<User> getFriends(@PathVariable long id) {
+        return userService.getAllFriends(id);
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable long id, @PathVariable long friendId) {
+        userService.addFriend(id, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void deleteFriend(@PathVariable long id, @PathVariable long friendId) {
+        userService.deleteFriend(id, friendId);
+    }
+
+    @GetMapping("{id}/friends/common/{otherId}")
+    public Collection<User> getCommonFriends(@PathVariable long id, @PathVariable long otherId) {
+        return userService.getCommonFriends(id, otherId);
     }
 }

@@ -1,16 +1,25 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.junit.jupiter.api.BeforeEach;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
 class UserControllerTest {
@@ -19,211 +28,144 @@ class UserControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private UserController userController;
+    private ObjectMapper objectMapper;
 
-    @BeforeEach
-    void setUp() {
-        userController.clearUsers();
+    @MockitoBean
+    private UserService userService;
+
+    private User sampleUser() {
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("user@mail.ru");
+        user.setLogin("user");
+        user.setName("Вася");
+        user.setBirthday(LocalDate.of(2000, 1, 1));
+        return user;
     }
 
     @Test
-    void shouldReturn200WhenUserIsValid() throws Exception {
-        String validJson = """
-                \s{
-                  "email": "test@mail.ru",
-                  "login": "testLogin",
-                  "name": "Test Name",
-                  "birthday": "2000-01-01"
-                \s}
-                """;
+    void index_returnsUsers() throws Exception {
+        when(userService.getAllUsers()).thenReturn(List.of(sampleUser()));
 
-        mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(validJson))
+        mockMvc.perform(get("/users"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.login").value("testLogin"))
-                .andExpect(jsonPath("$.name").value("Test Name"));
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].email").value("user@mail.ru"));
     }
 
     @Test
-    void shouldReturn400WhenEmailIsBlank() throws Exception {
-        String json = """
-                \s{
-                  "email": "   ",
-                  "login": "testLogin",
-                  "name": "Test Name",
-                  "birthday": "2000-01-01"
-                \s}
-                """;
+    void create_returnsUser() throws Exception {
+        when(userService.createUser(any(User.class))).thenReturn(sampleUser());
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("электронная почта не может быть пустой"));
+                        .content(objectMapper.writeValueAsString(sampleUser())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1));
     }
 
     @Test
-    void shouldReturn409WhenEmailIsDuplicated() throws Exception {
-        String firstUser = """
-                \s{
-                  "email": "same@mail.ru",
-                  "login": "user1",
-                  "name": "User One",
-                  "birthday": "2000-01-01"
-                \s}
-                """;
-        mockMvc.perform(post("/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(firstUser));
-
-        String secondUser = """
-                \s{
-                  "email": "same@mail.ru",
-                  "login": "user2",
-                  "name": "User Two",
-                  "birthday": "2000-01-01"
-                \s}
-                """;
+    void create_withDuplicateEmail_returnsConflict() throws Exception {
+        when(userService.createUser(any(User.class)))
+                .thenThrow(new DuplicatedDataException("Этот имейл уже используется"));
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(secondUser))
+                        .content(objectMapper.writeValueAsString(sampleUser())))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error").value("Этот имейл уже используется"));
     }
 
     @Test
-    void shouldSetLoginAsNameWhenNameIsBlank() throws Exception {
-        String json = """
-                \s{
-                  "email": "test@mail.ru",
-                  "login": "myLogin",
-                  "name": "",
-                  "birthday": "2000-01-01"
-                \s}
-                """;
+    void create_withInvalidEmail_returnsBadRequest() throws Exception {
+        when(userService.createUser(any(User.class)))
+                .thenThrow(new ValidationException("Email должен содержать символ @"));
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("myLogin"));
-    }
-
-    @Test
-    void shouldReturn400WhenBirthdayIsInFuture() throws Exception {
-        String json = """
-                \s{
-                  "email": "test@mail.ru",
-                  "login": "testLogin",
-                  "name": "Test",
-                  "birthday": "2099-01-01"
-                \s}
-                """;
-
-        mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
+                        .content("{\"email\":\"no-at\",\"login\":\"user\",\"birthday\":\"2000-01-01\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("дата рождения не может быть в будущем"));
+                .andExpect(jsonPath("$.error").value("Email должен содержать символ @"));
     }
 
     @Test
-    void shouldReturn200WhenUpdateExistingUser() throws Exception {
-        String createJson = """
-                \s{
-                  "email": "test@mail.ru",
-                  "login": "testLogin",
-                  "name": "Test Name",
-                  "birthday": "2000-01-01"
-                \s}
-                """;
-        mockMvc.perform(post("/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(createJson));
-
-        String updateJson = """
-                \s{
-                  "id": 1,
-                  "email": "new@mail.ru",
-                  "login": "newLogin",
-                  "name": "New Name",
-                  "birthday": "1990-05-05"
-                \s}
-                """;
+    void update_returnsUser() throws Exception {
+        when(userService.updateUser(any(User.class))).thenReturn(sampleUser());
 
         mockMvc.perform(put("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateJson))
+                        .content(objectMapper.writeValueAsString(sampleUser())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("new@mail.ru"))
-                .andExpect(jsonPath("$.name").value("New Name"));
+                .andExpect(jsonPath("$.id").value(1));
     }
 
     @Test
-    void shouldReturn404WhenUpdateNonExistentUser() throws Exception {
-        String updateJson = """
-                \s{
-                  "id": 999,
-                  "email": "ghost@mail.ru",
-                  "login": "ghost",
-                  "name": "Ghost",
-                  "birthday": "2000-01-01"
-                \s}
-                """;
+    void update_withoutId_returnsBadRequest() throws Exception {
+        when(userService.updateUser(any(User.class)))
+                .thenThrow(new ValidationException("Id должен быть указан"));
 
         mockMvc.perform(put("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateJson))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("User c id 999 не найден"));
-    }
-
-    @Test
-    void shouldReturn400WhenUpdateIdIsNull() throws Exception {
-        String updateJson = """
-                \s{
-                  "email": "test@mail.ru",
-                  "login": "testLogin",
-                  "name": "Test",
-                  "birthday": "2000-01-01"
-                \s}
-                """;
-
-        mockMvc.perform(put("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateJson))
+                        .content("{\"email\":\"a@b.ru\",\"login\":\"user\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Id должен быть указан"));
     }
 
     @Test
-    void shouldReturn409WhenUpdateEmailIsDuplicated() throws Exception {
-        String user1 = """
-                \s{"email": "one@mail.ru", "login": "user1", "name": "One", "birthday": "2000-01-01"}\s
-                """;
-        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(user1));
+    void getFriends_returnsFriends() throws Exception {
+        when(userService.getAllFriends(1L)).thenReturn(List.of(sampleUser()));
 
-        String user2 = """
-                \s{"email": "two@mail.ru", "login": "user2", "name": "Two", "birthday": "2000-01-01"}\s
-                """;
-        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content(user2));
+        mockMvc.perform(get("/users/1/friends"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1));
+    }
 
-        String updateJson = """
-                \s{
-                  "id": 2,
-                  "email": "one@mail.ru",
-                  "login": "user2",
-                  "name": "Two",
-                  "birthday": "2000-01-01"
-                \s}
-                """;
+    @Test
+    void getFriends_whenUserNotFound_returnsNotFound() throws Exception {
+        when(userService.getAllFriends(99L))
+                .thenThrow(new NotFoundException("User с id 99 не найден"));
 
-        mockMvc.perform(put("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateJson))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error").value("Этот имейл уже используется"));
+        mockMvc.perform(get("/users/99/friends"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void addFriend_callsService() throws Exception {
+        doNothing().when(userService).addFriend(1L, 2L);
+
+        mockMvc.perform(put("/users/1/friends/2"))
+                .andExpect(status().isOk());
+
+        verify(userService).addFriend(1L, 2L);
+    }
+
+    @Test
+    void addFriend_whenFriendNotFound_returnsNotFound() throws Exception {
+        doThrow(new NotFoundException("User с id 2 не найден"))
+                .when(userService).addFriend(1L, 2L);
+
+        mockMvc.perform(put("/users/1/friends/2"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteFriend_callsService() throws Exception {
+        doNothing().when(userService).deleteFriend(1L, 2L);
+
+        mockMvc.perform(delete("/users/1/friends/2"))
+                .andExpect(status().isOk());
+
+        verify(userService).deleteFriend(1L, 2L);
+    }
+
+    @Test
+    void getCommonFriends_returnsList() throws Exception {
+        when(userService.getCommonFriends(1L, 2L)).thenReturn(List.of(sampleUser()));
+
+        mockMvc.perform(get("/users/1/friends/common/2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1));
+
+        verify(userService).getCommonFriends(1L, 2L);
     }
 }

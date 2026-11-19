@@ -1,16 +1,24 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.junit.jupiter.api.BeforeEach;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(FilmController.class)
 class FilmControllerTest {
@@ -19,172 +27,133 @@ class FilmControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private FilmController filmController;
+    private ObjectMapper objectMapper;
 
-    @BeforeEach
-    void setUp() {
-        filmController.clearFilms();
+    @MockitoBean
+    private FilmService filmService;
+
+    private Film sampleFilm() {
+        Film film = new Film();
+        film.setId(1L);
+        film.setName("Интерстеллар");
+        film.setDescription("Космос");
+        film.setReleaseDate(LocalDate.of(2014, 11, 7));
+        film.setDuration(169);
+        return film;
     }
 
     @Test
-    void shouldReturn200WhenFilmIsValid() throws Exception {
-        String validJson = """
-                \s{
-                  "name": "Inception",
-                  "description": "A thief who steals corporate secrets.",
-                  "releaseDate": "2010-07-16",
-                  "duration": 8880
-                \s}
-                """;
+    void index_returnsAllFilms() throws Exception {
+        when(filmService.getAllFilms()).thenReturn(List.of(sampleFilm()));
 
-        mockMvc.perform(post("/films")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(validJson))
+        mockMvc.perform(get("/films"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Inception"));
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].name").value("Интерстеллар"));
+
+        verify(filmService).getAllFilms();
     }
 
     @Test
-    void shouldReturn400WhenNameIsBlank() throws Exception {
-        String json = """
-                \s{
-                  "name": "   ",
-                  "description": "Desc",
-                  "releaseDate": "2010-07-16",
-                  "duration": 8880
-                \s}
-                """;
+    void create_returnsCreatedFilm() throws Exception {
+        when(filmService.create(any(Film.class))).thenReturn(sampleFilm());
 
         mockMvc.perform(post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
+                        .content(objectMapper.writeValueAsString(sampleFilm())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Интерстеллар"));
+
+        verify(filmService).create(any(Film.class));
+    }
+
+    @Test
+    void create_withInvalidFilm_returnsBadRequest() throws Exception {
+        when(filmService.create(any(Film.class)))
+                .thenThrow(new ValidationException("Название не может быть пустым"));
+
+        mockMvc.perform(post("/films")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"\",\"duration\":100}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Название не может быть пустым"));
     }
 
     @Test
-    void shouldReturn400WhenDescriptionIsTooLong() throws Exception {
-        String longDescription = "A".repeat(201);
-        String json = """
-                \s{
-                  "name": "Inception",
-                  "description": "%s",
-                  "releaseDate": "2010-07-16",
-                  "duration": 8880
-                \s}
-                """.formatted(longDescription);
-
-        mockMvc.perform(post("/films")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Максимальная длина описания — 200 символов"));
-    }
-
-    @Test
-    void shouldReturn400WhenReleaseDateIsBefore1895() throws Exception {
-        String json = """
-                \s{
-                  "name": "Old Film",
-                  "description": "Old",
-                  "releaseDate": "1895-12-27",
-                  "duration": 100
-                \s}
-                """;
-
-        mockMvc.perform(post("/films")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Дата релиза — не раньше 28 декабря 1895 года"));
-    }
-
-    @Test
-    void shouldReturn400WhenDurationIsZero() throws Exception {
-        String json = """
-                \s{
-                  "name": "Inception",
-                  "description": "Desc",
-                  "releaseDate": "2010-07-16",
-                  "duration": 0
-                \s}
-                """;
-
-        mockMvc.perform(post("/films")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Продолжительность должна быть больше нуля"));
-    }
-
-
-    @Test
-    void shouldReturn200WhenUpdateExistingFilm() throws Exception {
-        // 1. Сначала создаем фильм
-        String createJson = """
-                \s{
-                  "name": "Inception",
-                  "description": "Desc",
-                  "releaseDate": "2010-07-16",
-                  "duration": 8880
-                \s}
-                """;
-        mockMvc.perform(post("/films")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(createJson));
-
-        // 2. Обновляем его
-        String updateJson = """
-                \s{
-                  "id": 1,
-                  "name": "Inception Updated",
-                  "description": "New Desc",
-                  "releaseDate": "2010-07-16",
-                  "duration": 9000
-                \s}
-                """;
+    void update_returnsUpdatedFilm() throws Exception {
+        when(filmService.update(any(Film.class))).thenReturn(sampleFilm());
 
         mockMvc.perform(put("/films")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateJson))
+                        .content(objectMapper.writeValueAsString(sampleFilm())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Inception Updated"));
+                .andExpect(jsonPath("$.id").value(1));
     }
 
     @Test
-    void shouldReturn404WhenUpdateNonExistentFilm() throws Exception {
-        String updateJson = """
-                \s{
-                  "id": 999,
-                  "name": "Ghost Film",
-                  "description": "Desc",
-                  "releaseDate": "2010-07-16",
-                  "duration": 8880
-                \s}
-                """;
+    void update_whenNotFound_returnsNotFound() throws Exception {
+        when(filmService.update(any(Film.class)))
+                .thenThrow(new NotFoundException("Фильм с ID 99 не найден"));
+
+        Film f = sampleFilm();
+        f.setId(99L);
 
         mockMvc.perform(put("/films")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateJson))
+                        .content(objectMapper.writeValueAsString(f)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("Фильм с ID 999 не найден"));
+                .andExpect(jsonPath("$.error").value("Фильм с ID 99 не найден"));
     }
 
     @Test
-    void shouldReturn400WhenUpdateIdIsNull() throws Exception {
-        String updateJson = """
-                \s{
-                  "name": "No Id Film",
-                  "description": "Desc",
-                  "releaseDate": "2010-07-16",
-                  "duration": 8880
-                \s}
-                """;
+    void like_callsService() throws Exception {
+        doNothing().when(filmService).addLike(1L, 2L);
 
-        mockMvc.perform(put("/films")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateJson))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Id должен быть указан"));
+        mockMvc.perform(put("/films/1/like/2"))
+                .andExpect(status().isOk());
+
+        verify(filmService).addLike(1L, 2L);
+    }
+
+    @Test
+    void like_whenUserNotFound_returnsNotFound() throws Exception {
+        doThrow(new NotFoundException("Пользователь с таким ID 2 не найден"))
+                .when(filmService).addLike(1L, 2L);
+
+        mockMvc.perform(put("/films/1/like/2"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Пользователь с таким ID 2 не найден"));
+    }
+
+    @Test
+    void unlike_callsService() throws Exception {
+        doNothing().when(filmService).deleteLike(1L, 2L);
+
+        mockMvc.perform(delete("/films/1/like/2"))
+                .andExpect(status().isOk());
+
+        verify(filmService).deleteLike(1L, 2L);
+    }
+
+    @Test
+    void getPopularFilms_defaultCount() throws Exception {
+        when(filmService.getPopularFilms(10)).thenReturn(List.of(sampleFilm()));
+
+        mockMvc.perform(get("/films/popular"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1));
+
+        verify(filmService).getPopularFilms(10);
+    }
+
+    @Test
+    void getPopularFilms_customCount() throws Exception {
+        when(filmService.getPopularFilms(2)).thenReturn(List.of());
+
+        mockMvc.perform(get("/films/popular").param("count", "2"))
+                .andExpect(status().isOk());
+
+        verify(filmService).getPopularFilms(2);
     }
 }
